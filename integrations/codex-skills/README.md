@@ -1,5 +1,7 @@
 # Codex Official Skills
 
+Russian translation starter: [README.ru.md](./README.ru.md)
+
 Official Codex skill integration packages every Agency agent as a skill
 (`SKILL.md` per agent) and installs them to `~/.agents/skills/`.
 

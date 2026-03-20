@@ -1,5 +1,7 @@
 # 🔌 Integrations
 
+Russian translation starter: [README.ru.md](./README.ru.md)
+
 This directory contains The Agency integrations and converted formats for
 supported agentic coding tools.
 

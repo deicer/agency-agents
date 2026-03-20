@@ -1,5 +1,7 @@
 # Codex Legacy Skills
 
+Russian translation starter: [README.ru.md](./README.ru.md)
+
 Legacy Codex integration packages every Agency agent as a Codex skill
 (`SKILL.md` per agent) and installs them to `${CODEX_HOME:-~/.codex}/skills/`.
 

@@ -1,5 +1,7 @@
 # Examples
 
+Russian translation starter: [README.ru.md](./README.ru.md)
+
 This directory contains example outputs demonstrating how the agency's agents can be orchestrated together to tackle real-world tasks.
 
 ## Why This Exists

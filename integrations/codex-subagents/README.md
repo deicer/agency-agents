@@ -1,5 +1,7 @@
 # Codex Curated Subagents
 
+Russian translation starter: [README.ru.md](./README.ru.md)
+
 Curated Codex subagents package the most practical Agency roles as focused
 Codex subagents (`.toml` files) and install them to
 `${CODEX_HOME:-~/.codex}/agents/`.
