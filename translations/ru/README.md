@@ -30,15 +30,23 @@ Engineering:
 - [engineering/engineering-sre.md](./engineering/engineering-sre.md)
 - [engineering/engineering-technical-writer.md](./engineering/engineering-technical-writer.md)
 - [engineering/engineering-git-workflow-master.md](./engineering/engineering-git-workflow-master.md)
+- [engineering/engineering-devops-automator.md](./engineering/engineering-devops-automator.md)
 
 Specialized:
 
 - [specialized/specialized-mcp-builder.md](./specialized/specialized-mcp-builder.md)
 
-Следующий шаг после этого минимума:
+Testing:
 
-- `engineering-devops-automator`
-- `testing-api-tester`
-- `testing-accessibility-auditor`
-- `testing-performance-benchmarker`
-- `testing-reality-checker`
+- [testing/testing-api-tester.md](./testing/testing-api-tester.md)
+- [testing/testing-accessibility-auditor.md](./testing/testing-accessibility-auditor.md)
+- [testing/testing-performance-benchmarker.md](./testing/testing-performance-benchmarker.md)
+- [testing/testing-reality-checker.md](./testing/testing-reality-checker.md)
+
+Следующий шаг после этого минимума:
+- `remaining-engineering`
+- `remaining-testing`
+- `design`
+- `product`
+- `project-management`
+- `support`
