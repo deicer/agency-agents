@@ -21,9 +21,14 @@
 
 Engineering:
 
+- [engineering/engineering-backend-architect.md](./engineering/engineering-backend-architect.md)
+- [engineering/engineering-frontend-developer.md](./engineering/engineering-frontend-developer.md)
 - [engineering/engineering-code-reviewer.md](./engineering/engineering-code-reviewer.md)
+- [engineering/engineering-database-optimizer.md](./engineering/engineering-database-optimizer.md)
+- [engineering/engineering-security-engineer.md](./engineering/engineering-security-engineer.md)
 - [engineering/engineering-software-architect.md](./engineering/engineering-software-architect.md)
 - [engineering/engineering-sre.md](./engineering/engineering-sre.md)
+- [engineering/engineering-technical-writer.md](./engineering/engineering-technical-writer.md)
 - [engineering/engineering-git-workflow-master.md](./engineering/engineering-git-workflow-master.md)
 
 Specialized:
@@ -32,11 +37,6 @@ Specialized:
 
 Следующий шаг после этого минимума:
 
-- `engineering-backend-architect`
-- `engineering-frontend-developer`
-- `engineering-security-engineer`
-- `engineering-database-optimizer`
-- `engineering-technical-writer`
 - `engineering-devops-automator`
 - `testing-api-tester`
 - `testing-accessibility-auditor`
