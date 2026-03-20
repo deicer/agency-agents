@@ -10,16 +10,19 @@
 #   ./scripts/convert.sh [--tool <name>] [--out <dir>] [--parallel] [--jobs N] [--help]
 #
 # Tools:
-#   antigravity  — Antigravity skill files (~/.gemini/antigravity/skills/)
-#   gemini-cli   — Gemini CLI extension (skills/ + gemini-extension.json)
-#   codex        — Codex skills (SKILL.md per agent in ~/.codex/skills/)
-#   opencode     — OpenCode agent files (.opencode/agent/*.md)
-#   cursor       — Cursor rule files (.cursor/rules/*.mdc)
-#   aider        — Single CONVENTIONS.md for Aider
-#   windsurf     — Single .windsurfrules for Windsurf
-#   openclaw     — OpenClaw SOUL.md files (openclaw_workspace/<agent>/SOUL.md)
-#   qwen         — Qwen Code SubAgent files (~/.qwen/agents/*.md)
-#   all          — All tools (default)
+#   antigravity     — Antigravity skill files (~/.gemini/antigravity/skills/)
+#   gemini-cli      — Gemini CLI extension (skills/ + gemini-extension.json)
+#   codex           — Legacy Codex skills (SKILL.md per agent in ~/.codex/skills/)
+#   codex-skills    — Official Codex skills (SKILL.md per agent in ~/.agents/skills/)
+#   codex-subagents — Curated Codex subagents (.toml in ~/.codex/agents/)
+#   codex-all       — Codex official skills + curated subagents
+#   opencode        — OpenCode agent files (.opencode/agent/*.md)
+#   cursor          — Cursor rule files (.cursor/rules/*.mdc)
+#   aider           — Single CONVENTIONS.md for Aider
+#   windsurf        — Single .windsurfrules for Windsurf
+#   openclaw        — OpenClaw SOUL.md files (openclaw_workspace/<agent>/SOUL.md)
+#   qwen            — Qwen Code SubAgent files (~/.qwen/agents/*.md)
+#   all             — All tools (default)
 #
 # Output is written to integrations/<tool>/ relative to the repo root.
 # This script never touches user config dirs — see install.sh for that.
@@ -60,6 +63,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 OUT_DIR="$REPO_ROOT/integrations"
 TODAY="$(date +%Y-%m-%d)"
+
+# shellcheck source=./codex_subagents.sh
+source "$SCRIPT_DIR/codex_subagents.sh"
 
 AGENT_DIRS=(
   academic design engineering game-development marketing paid-media sales product project-management
@@ -155,8 +161,9 @@ ${body}
 HEREDOC
 }
 
-convert_codex() {
+convert_codex_skill_to_dir() {
   local file="$1"
+  local root="$2"
   local name description slug outdir outfile body
 
   name="$(get_field "name" "$file")"
@@ -164,11 +171,10 @@ convert_codex() {
   slug="agency-$(slugify "$name")"
   body="$(get_body "$file")"
 
-  outdir="$OUT_DIR/codex/skills/$slug"
+  outdir="$root/skills/$slug"
   outfile="$outdir/SKILL.md"
   mkdir -p "$outdir"
 
-  # Codex skill format: SKILL.md with minimal frontmatter.
   cat > "$outfile" <<HEREDOC
 ---
 name: ${slug}
@@ -176,6 +182,54 @@ description: ${description}
 ---
 ${body}
 HEREDOC
+}
+
+convert_codex() {
+  local file="$1"
+  convert_codex_skill_to_dir "$file" "$OUT_DIR/codex"
+}
+
+convert_codex_skills() {
+  local file="$1"
+  convert_codex_skill_to_dir "$file" "$OUT_DIR/codex-skills"
+}
+
+convert_codex_subagents() {
+  local outdir="$OUT_DIR/codex-subagents/agents"
+  mkdir -p "$outdir"
+
+  while IFS='|' read -r slug source_file description model reasoning sandbox; do
+    [[ -n "$slug" ]] || continue
+    if [[ ! -f "$REPO_ROOT/$source_file" ]]; then
+      error "Missing subagent source file: $source_file"
+      exit 1
+    fi
+
+    local outfile="$outdir/$slug.toml"
+    local instructions
+    instructions="$(codex_subagent_instructions "$slug")"
+
+    cat > "$outfile" <<HEREDOC
+# Source: ${source_file}
+name = "${slug}"
+description = "${description}"
+model = "${model}"
+model_reasoning_effort = "${reasoning}"
+sandbox_mode = "${sandbox}"
+
+developer_instructions = """
+${instructions}
+"""
+HEREDOC
+  done < <(codex_subagent_entries)
+}
+
+prepare_output_for_tool() {
+  case "$1" in
+    codex)           rm -rf "$OUT_DIR/codex/skills" ;;
+    codex-skills)    rm -rf "$OUT_DIR/codex-skills/skills" ;;
+    codex-subagents) rm -rf "$OUT_DIR/codex-subagents/agents" ;;
+  esac
 }
 
 # Map known color names and normalize to OpenCode-safe #RRGGBB values.
@@ -473,6 +527,17 @@ run_conversions() {
   local tool="$1"
   local count=0
 
+  prepare_output_for_tool "$tool"
+
+  if [[ "$tool" == "codex-subagents" ]]; then
+    convert_codex_subagents
+    while IFS= read -r _; do
+      (( count++ )) || true
+    done < <(codex_subagent_entries)
+    echo "$count"
+    return
+  fi
+
   for dir in "${AGENT_DIRS[@]}"; do
     local dirpath="$REPO_ROOT/$dir"
     [[ -d "$dirpath" ]] || continue
@@ -491,6 +556,7 @@ run_conversions() {
         antigravity) convert_antigravity "$file" ;;
         gemini-cli)  convert_gemini_cli  "$file" ;;
         codex)       convert_codex       "$file" ;;
+        codex-skills) convert_codex_skills "$file" ;;
         opencode)    convert_opencode    "$file" ;;
         cursor)      convert_cursor      "$file" ;;
         openclaw)    convert_openclaw    "$file" ;;
@@ -525,7 +591,7 @@ main() {
     esac
   done
 
-  local valid_tools=("antigravity" "gemini-cli" "codex" "opencode" "cursor" "aider" "windsurf" "openclaw" "qwen" "all")
+  local valid_tools=("antigravity" "gemini-cli" "codex" "codex-skills" "codex-subagents" "codex-all" "opencode" "cursor" "aider" "windsurf" "openclaw" "qwen" "all")
   local valid=false
   for t in "${valid_tools[@]}"; do [[ "$t" == "$tool" ]] && valid=true && break; done
   if ! $valid; then
@@ -544,7 +610,9 @@ main() {
 
   local tools_to_run=()
   if [[ "$tool" == "all" ]]; then
-    tools_to_run=("antigravity" "gemini-cli" "codex" "opencode" "cursor" "aider" "windsurf" "openclaw" "qwen")
+    tools_to_run=("antigravity" "gemini-cli" "codex" "codex-skills" "codex-subagents" "opencode" "cursor" "aider" "windsurf" "openclaw" "qwen")
+  elif [[ "$tool" == "codex-all" ]]; then
+    tools_to_run=("codex-skills" "codex-subagents")
   else
     tools_to_run=("$tool")
   fi
@@ -555,7 +623,7 @@ main() {
 
   if $use_parallel && [[ "$tool" == "all" ]]; then
     # Tools that write to separate dirs can run in parallel; buffer output so each tool's output stays together
-    local parallel_tools=(antigravity gemini-cli codex opencode cursor openclaw qwen)
+    local parallel_tools=(antigravity gemini-cli codex codex-skills codex-subagents opencode cursor openclaw qwen)
     local parallel_out_dir
     parallel_out_dir="$(mktemp -d)"
     info "Converting: ${#parallel_tools[@]}/${n_tools} tools in parallel (output buffered per tool)..."

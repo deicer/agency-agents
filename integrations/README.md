@@ -9,7 +9,9 @@ supported agentic coding tools.
 - **[GitHub Copilot](#github-copilot)** — `.md` agents, use the repo directly
 - **[Antigravity](#antigravity)** — `SKILL.md` per agent in `antigravity/`
 - **[Gemini CLI](#gemini-cli)** — extension + `SKILL.md` files in `gemini-cli/`
-- **[Codex](#codex)** — `SKILL.md` per agent in `codex/skills/`
+- **[Codex Official Skills](#codex-official-skills)** — `SKILL.md` per agent in `codex-skills/skills/`
+- **[Codex Curated Subagents](#codex-curated-subagents)** — curated `.toml` files in `codex-subagents/agents/`
+- **[Codex Legacy Skills](#codex-legacy-skills)** — `SKILL.md` per agent in `codex/skills/`
 - **[OpenCode](#opencode)** — `.md` agent files in `opencode/`
 - **[OpenClaw](#openclaw)** — `SOUL.md` + `AGENTS.md` + `IDENTITY.md` workspaces
 - **[Cursor](#cursor)** — `.mdc` rule files in `cursor/`
@@ -27,13 +29,25 @@ supported agentic coding tools.
 ./scripts/install.sh --tool copilot
 ./scripts/install.sh --tool openclaw
 ./scripts/install.sh --tool claude-code
-./scripts/install.sh --tool codex
+./scripts/install.sh --tool codex-all
 
 # Gemini CLI needs generated integration files on a fresh clone
 ./scripts/convert.sh --tool gemini-cli
 ./scripts/install.sh --tool gemini-cli
 
-# Codex also uses generated integration files
+# Recommended Codex path: official skills + curated subagents
+./scripts/convert.sh --tool codex-all
+./scripts/install.sh --tool codex-all
+
+# Codex official skills only
+./scripts/convert.sh --tool codex-skills
+./scripts/install.sh --tool codex-skills
+
+# Codex curated subagents only
+./scripts/convert.sh --tool codex-subagents
+./scripts/install.sh --tool codex-subagents
+
+# Legacy Codex skills layout
 ./scripts/convert.sh --tool codex
 ./scripts/install.sh --tool codex
 ```
@@ -109,10 +123,52 @@ See [gemini-cli/README.md](gemini-cli/README.md) for details.
 
 ---
 
-## Codex
+## Codex Official Skills
 
-Agents are packaged as Codex skills under `integrations/codex/skills/`.
-Install them to `${CODEX_HOME:-~/.codex}/skills/`.
+The recommended Codex skill integration writes generated skills to
+`integrations/codex-skills/skills/` and installs them to `~/.agents/skills/`.
+
+```bash
+./scripts/convert.sh --tool codex-skills
+./scripts/install.sh --tool codex-skills
+```
+
+Use in Codex:
+
+```text
+Use the $agency-frontend-developer skill to help me build this UI.
+```
+
+See [codex-skills/README.md](codex-skills/README.md) for details.
+
+---
+
+## Codex Curated Subagents
+
+Curated Codex subagents are generated under `integrations/codex-subagents/agents/`
+and install to `${CODEX_HOME:-~/.codex}/agents/`.
+
+```bash
+./scripts/convert.sh --tool codex-subagents
+./scripts/install.sh --tool codex-subagents
+```
+
+Recommended combined install:
+
+```bash
+./scripts/convert.sh --tool codex-all
+./scripts/install.sh --tool codex-all
+```
+
+See [codex-subagents/README.md](codex-subagents/README.md) for details.
+
+---
+
+## Codex Legacy Skills
+
+The legacy Codex layout is still supported for backward compatibility.
+It writes generated skills to `integrations/codex/skills/` and installs
+them to `${CODEX_HOME:-~/.codex}/skills/`.
 
 ```bash
 ./scripts/convert.sh --tool codex

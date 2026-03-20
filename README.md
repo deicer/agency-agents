@@ -53,9 +53,16 @@ Browse the agents below and copy/adapt the ones you need!
 # Step 2 -- install interactively (auto-detects what you have installed)
 ./scripts/install.sh
 
+# Recommended Codex path: official skills + curated subagents
+./scripts/convert.sh --tool codex-all
+./scripts/install.sh --tool codex-all
+
 # Or target a specific tool directly
 ./scripts/install.sh --tool cursor
 ./scripts/install.sh --tool copilot
+./scripts/install.sh --tool codex-all
+./scripts/install.sh --tool codex-skills
+./scripts/install.sh --tool codex-subagents
 ./scripts/install.sh --tool codex
 ./scripts/install.sh --tool aider
 ./scripts/install.sh --tool windsurf
@@ -510,7 +517,8 @@ The Agency works natively with Claude Code, and ships conversion + install scrip
 - **[GitHub Copilot](https://github.com/copilot)** — native `.md` agents, no conversion needed → `~/.github/agents/` + `~/.copilot/agents/`
 - **[Antigravity](https://github.com/google-gemini/antigravity)** — `SKILL.md` per agent → `~/.gemini/antigravity/skills/`
 - **[Gemini CLI](https://github.com/google-gemini/gemini-cli)** — extension + `SKILL.md` files → `~/.gemini/extensions/agency-agents/`
-- **Codex** — `SKILL.md` files → `${CODEX_HOME:-~/.codex}/skills/`
+- **Codex (official)** — `SKILL.md` files + curated subagents → `~/.agents/skills/` + `${CODEX_HOME:-~/.codex}/agents/`
+- **Codex (legacy)** — `SKILL.md` files → `${CODEX_HOME:-~/.codex}/skills/`
 - **[OpenCode](https://opencode.ai)** — `.md` agent files → `.opencode/agents/`
 - **[Cursor](https://cursor.sh)** — `.mdc` rule files → `.cursor/rules/`
 - **[Aider](https://aider.chat)** — single `CONVENTIONS.md` → `./CONVENTIONS.md`
@@ -547,7 +555,7 @@ The installer scans your system for installed tools, shows a checkbox UI, and le
   [x]  2)  [*]  Copilot         (~/.github + ~/.copilot)
   [x]  3)  [*]  Antigravity     (~/.gemini/antigravity)
   [ ]  4)  [ ]  Gemini CLI      (gemini extension)
-  [ ]  5)  [ ]  Codex           (~/.codex/skills)
+  [ ]  5)  [ ]  Codex           (~/.agents + ~/.codex)
   [ ]  6)  [ ]  OpenCode        (opencode.ai)
   [ ]  7)  [ ]  OpenClaw        (~/.openclaw)
   [x]  8)  [*]  Cursor          (.cursor/rules)
@@ -565,6 +573,9 @@ The installer scans your system for installed tools, shows a checkbox UI, and le
 ./scripts/install.sh --tool opencode
 ./scripts/install.sh --tool openclaw
 ./scripts/install.sh --tool antigravity
+./scripts/install.sh --tool codex-all
+./scripts/install.sh --tool codex-skills
+./scripts/install.sh --tool codex-subagents
 ./scripts/install.sh --tool codex
 ```
 
@@ -655,19 +666,46 @@ See [integrations/gemini-cli/README.md](integrations/gemini-cli/README.md) for d
 <details>
 <summary><strong>Codex</strong></summary>
 
-Agents are packaged as Codex skills and installed to `${CODEX_HOME:-~/.codex}/skills/`.
+Recommended Codex install:
+
+```bash
+./scripts/convert.sh --tool codex-all
+./scripts/install.sh --tool codex-all
+```
+
+This installs:
+
+- official Codex skills to `~/.agents/skills/`
+- curated Codex subagents to `${CODEX_HOME:-~/.codex}/agents/`
+
+You can also install only one side:
+
+```bash
+./scripts/convert.sh --tool codex-skills
+./scripts/install.sh --tool codex-skills
+
+./scripts/convert.sh --tool codex-subagents
+./scripts/install.sh --tool codex-subagents
+```
+
+Legacy Codex skills are still available:
 
 ```bash
 ./scripts/convert.sh --tool codex
 ./scripts/install.sh --tool codex
 ```
 
-Activate in Codex:
+Activate a skill in Codex:
 ```
 Use the $agency-frontend-developer skill to review this component.
 ```
 
-See [integrations/codex/README.md](integrations/codex/README.md) for details.
+Delegate to a curated subagent in Codex:
+```
+Use the agency-code-reviewer subagent to review this branch for regressions.
+```
+
+See [integrations/codex-skills/README.md](integrations/codex-skills/README.md), [integrations/codex-subagents/README.md](integrations/codex-subagents/README.md), and [integrations/codex/README.md](integrations/codex/README.md) for details.
 </details>
 
 <details>

@@ -10,18 +10,21 @@
 #   ./scripts/install.sh [--tool <name>] [--interactive] [--no-interactive] [--parallel] [--jobs N] [--help]
 #
 # Tools:
-#   claude-code  -- Copy agents to ~/.claude/agents/
-#   copilot      -- Copy agents to ~/.github/agents/ and ~/.copilot/agents/
-#   antigravity  -- Copy skills to ~/.gemini/antigravity/skills/
-#   gemini-cli   -- Install extension to ~/.gemini/extensions/agency-agents/
-#   codex        -- Copy skills to ~/.codex/skills/ (or $CODEX_HOME/skills)
-#   opencode     -- Copy agents to .opencode/agent/ in current directory
-#   cursor       -- Copy rules to .cursor/rules/ in current directory
-#   aider        -- Copy CONVENTIONS.md to current directory
-#   windsurf     -- Copy .windsurfrules to current directory
-#   openclaw     -- Copy workspaces to ~/.openclaw/agency-agents/
-#   qwen         -- Copy SubAgents to ~/.qwen/agents/ (user-wide) or .qwen/agents/ (project)
-#   all          -- Install for all detected tools (default)
+#   claude-code     -- Copy agents to ~/.claude/agents/
+#   copilot         -- Copy agents to ~/.github/agents/ and ~/.copilot/agents/
+#   antigravity     -- Copy skills to ~/.gemini/antigravity/skills/
+#   gemini-cli      -- Install extension to ~/.gemini/extensions/agency-agents/
+#   codex           -- Copy legacy skills to ~/.codex/skills/ (or $CODEX_HOME/skills)
+#   codex-skills    -- Copy official Codex skills to ~/.agents/skills/
+#   codex-subagents -- Copy curated Codex subagents to ~/.codex/agents/ (or $CODEX_HOME/agents)
+#   codex-all       -- Install official Codex skills + curated Codex subagents
+#   opencode        -- Copy agents to .opencode/agent/ in current directory
+#   cursor          -- Copy rules to .cursor/rules/ in current directory
+#   aider           -- Copy CONVENTIONS.md to current directory
+#   windsurf        -- Copy .windsurfrules to current directory
+#   openclaw        -- Copy workspaces to ~/.openclaw/agency-agents/
+#   qwen            -- Copy SubAgents to ~/.qwen/agents/ (user-wide) or .qwen/agents/ (project)
+#   all             -- Install for all detected tools (default)
 #
 # Flags:
 #   --tool <name>     Install only the specified tool
@@ -102,7 +105,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 INTEGRATIONS="$REPO_ROOT/integrations"
 
-ALL_TOOLS=(claude-code copilot antigravity gemini-cli codex opencode openclaw cursor aider windsurf qwen)
+EXPLICIT_TOOLS=(claude-code copilot antigravity gemini-cli codex codex-skills codex-subagents codex-all opencode openclaw cursor aider windsurf qwen)
+SELECTABLE_TOOLS=(claude-code copilot antigravity gemini-cli codex-all opencode openclaw cursor aider windsurf qwen)
 
 # ---------------------------------------------------------------------------
 # Usage
@@ -138,6 +142,7 @@ detect_copilot()      { command -v code >/dev/null 2>&1 || [[ -d "${HOME}/.githu
 detect_antigravity()  { [[ -d "${HOME}/.gemini/antigravity/skills" ]]; }
 detect_gemini_cli()   { command -v gemini >/dev/null 2>&1 || [[ -d "${HOME}/.gemini" ]]; }
 detect_codex()        { command -v codex >/dev/null 2>&1 || [[ -d "${CODEX_HOME:-${HOME}/.codex}" ]]; }
+detect_codex_all()    { detect_codex; }
 detect_cursor()       { command -v cursor >/dev/null 2>&1 || [[ -d "${HOME}/.cursor" ]]; }
 detect_opencode()     { command -v opencode >/dev/null 2>&1 || [[ -d "${HOME}/.config/opencode" ]]; }
 detect_aider()        { command -v aider >/dev/null 2>&1; }
@@ -151,7 +156,7 @@ is_detected() {
     copilot)     detect_copilot     ;;
     antigravity) detect_antigravity ;;
     gemini-cli)  detect_gemini_cli  ;;
-    codex)       detect_codex       ;;
+    codex-all)   detect_codex_all   ;;
     opencode)    detect_opencode    ;;
     openclaw)    detect_openclaw    ;;
     cursor)      detect_cursor      ;;
@@ -169,7 +174,7 @@ tool_label() {
     copilot)     printf "%-14s  %s" "Copilot"      "(~/.github + ~/.copilot)" ;;
     antigravity) printf "%-14s  %s" "Antigravity"  "(~/.gemini/antigravity)" ;;
     gemini-cli)  printf "%-14s  %s" "Gemini CLI"   "(gemini extension)"      ;;
-    codex)       printf "%-14s  %s" "Codex"        "(~/.codex/skills)"       ;;
+    codex-all)   printf "%-14s  %s" "Codex"        "(~/.agents + ~/.codex)"  ;;
     opencode)    printf "%-14s  %s" "OpenCode"     "(opencode.ai)"           ;;
     openclaw)    printf "%-14s  %s" "OpenClaw"     "(~/.openclaw)"           ;;
     cursor)      printf "%-14s  %s" "Cursor"       "(.cursor/rules)"         ;;
@@ -188,7 +193,7 @@ interactive_select() {
   declare -a detected_map=()
 
   local t
-  for t in "${ALL_TOOLS[@]}"; do
+  for t in "${SELECTABLE_TOOLS[@]}"; do
     if is_detected "$t" 2>/dev/null; then
       selected+=(1); detected_map+=(1)
     else
@@ -208,7 +213,7 @@ interactive_select() {
 
     # --- tool rows ---
     local i=0
-    for t in "${ALL_TOOLS[@]}"; do
+    for t in "${SELECTABLE_TOOLS[@]}"; do
       local num=$(( i + 1 ))
       local label
       label="$(tool_label "$t")"
@@ -231,7 +236,7 @@ interactive_select() {
     # --- controls ---
     printf "\n"
     printf "  ------------------------------------------------\n"
-    printf "  ${C_CYAN}[1-%s]${C_RESET} toggle   ${C_CYAN}[a]${C_RESET} all   ${C_CYAN}[n]${C_RESET} none   ${C_CYAN}[d]${C_RESET} detected\n" "${#ALL_TOOLS[@]}"
+    printf "  ${C_CYAN}[1-%s]${C_RESET} toggle   ${C_CYAN}[a]${C_RESET} all   ${C_CYAN}[n]${C_RESET} none   ${C_CYAN}[d]${C_RESET} detected\n" "${#SELECTABLE_TOOLS[@]}"
     printf "  ${C_GREEN}[Enter]${C_RESET} install   ${C_RED}[q]${C_RESET} quit\n"
     printf "\n"
     printf "  >> "
@@ -262,7 +267,7 @@ interactive_select() {
         for num in $input; do
           if [[ "$num" =~ ^[0-9]+$ ]]; then
             local idx=$(( num - 1 ))
-            if (( idx >= 0 && idx < ${#ALL_TOOLS[@]} )); then
+            if (( idx >= 0 && idx < ${#SELECTABLE_TOOLS[@]} )); then
               if [[ "${selected[$idx]}" == "1" ]]; then
                 selected[$idx]=0
               else
@@ -273,13 +278,13 @@ interactive_select() {
           fi
         done
         if ! $toggled; then
-          printf "  ${C_RED}Invalid. Enter a number 1-%s, or a command.${C_RESET}\n" "${#ALL_TOOLS[@]}"
+          printf "  ${C_RED}Invalid. Enter a number 1-%s, or a command.${C_RESET}\n" "${#SELECTABLE_TOOLS[@]}"
           sleep 1
         fi ;;
     esac
 
     # Clear UI for redraw
-    local lines=$(( ${#ALL_TOOLS[@]} + 14 ))
+    local lines=$(( ${#SELECTABLE_TOOLS[@]} + 14 ))
     local l
     for (( l=0; l<lines; l++ )); do printf '\033[1A\033[2K'; done
   done
@@ -287,7 +292,7 @@ interactive_select() {
   # Build output array
   SELECTED_TOOLS=()
   local i=0
-  for t in "${ALL_TOOLS[@]}"; do
+  for t in "${SELECTABLE_TOOLS[@]}"; do
     [[ "${selected[$i]}" == "1" ]] && SELECTED_TOOLS+=("$t")
     (( i++ )) || true
   done
@@ -388,6 +393,58 @@ install_codex() {
     (( count++ )) || true
   done < <(find "$src" -mindepth 1 -maxdepth 1 -type d -print0)
   ok "Codex: $count skills -> $dest"
+}
+
+install_codex_skills() {
+  local src="$INTEGRATIONS/codex-skills/skills"
+  local dest="${HOME}/.agents/skills"
+  local count=0
+  [[ -d "$src" ]] || { err "integrations/codex-skills/skills missing. Run ./scripts/convert.sh --tool codex-skills first."; return 1; }
+  mkdir -p "$dest"
+  local d
+  while IFS= read -r -d '' d; do
+    local name; name="$(basename "$d")"
+    mkdir -p "$dest/$name"
+    cp "$d/SKILL.md" "$dest/$name/SKILL.md"
+    (( count++ )) || true
+  done < <(find "$src" -mindepth 1 -maxdepth 1 -type d -print0)
+  ok "Codex skills: $count skills -> $dest"
+}
+
+install_codex_subagents() {
+  local src="$INTEGRATIONS/codex-subagents/agents"
+  local codex_home="${CODEX_HOME:-${HOME}/.codex}"
+  local dest="$codex_home/agents"
+  local skills_root="${HOME}/.agents/skills"
+  local count=0
+  [[ -d "$src" ]] || { err "integrations/codex-subagents/agents missing. Run ./scripts/convert.sh --tool codex-subagents first."; return 1; }
+  mkdir -p "$dest"
+  local f
+  while IFS= read -r -d '' f; do
+    local base skill_slug skill_path enabled
+    base="$(basename "$f")"
+    skill_slug="${base%.toml}"
+    skill_path="$skills_root/$skill_slug/SKILL.md"
+    enabled="false"
+    if [[ -f "$skill_path" ]]; then
+      enabled="true"
+    fi
+
+    cp "$f" "$dest/$base"
+    cat >> "$dest/$base" <<HEREDOC
+
+[[skills.config]]
+path = "$skill_path"
+enabled = $enabled
+HEREDOC
+    (( count++ )) || true
+  done < <(find "$src" -mindepth 1 -maxdepth 1 -name "*.toml" -type f -print0)
+  ok "Codex subagents: $count agents -> $dest"
+}
+
+install_codex_all() {
+  install_codex_skills
+  install_codex_subagents
 }
 
 install_opencode() {
@@ -496,6 +553,9 @@ install_tool() {
     antigravity) install_antigravity ;;
     gemini-cli)  install_gemini_cli  ;;
     codex)       install_codex       ;;
+    codex-skills) install_codex_skills ;;
+    codex-subagents) install_codex_subagents ;;
+    codex-all)   install_codex_all   ;;
     opencode)    install_opencode    ;;
     openclaw)    install_openclaw    ;;
     cursor)      install_cursor      ;;
@@ -532,9 +592,9 @@ main() {
   # Validate explicit tool
   if [[ "$tool" != "all" ]]; then
     local valid=false t
-    for t in "${ALL_TOOLS[@]}"; do [[ "$t" == "$tool" ]] && valid=true && break; done
+    for t in "${EXPLICIT_TOOLS[@]}"; do [[ "$t" == "$tool" ]] && valid=true && break; done
     if ! $valid; then
-      err "Unknown tool '$tool'. Valid: ${ALL_TOOLS[*]}"
+      err "Unknown tool '$tool'. Valid: ${EXPLICIT_TOOLS[*]}"
       exit 1
     fi
   fi
@@ -560,7 +620,7 @@ main() {
     header "The Agency -- Scanning for installed tools..."
     printf "\n"
     local t
-    for t in "${ALL_TOOLS[@]}"; do
+    for t in "${SELECTABLE_TOOLS[@]}"; do
       if is_detected "$t" 2>/dev/null; then
         SELECTED_TOOLS+=("$t")
         printf "  ${C_GREEN}[*]${C_RESET}  %s  ${C_DIM}detected${C_RESET}\n" "$(tool_label "$t")"
@@ -574,7 +634,7 @@ main() {
     warn "No tools selected or detected. Nothing to install."
     printf "\n"
     dim "  Tip: use --tool <name> to force-install a specific tool."
-    dim "  Available: ${ALL_TOOLS[*]}"
+    dim "  Available: ${EXPLICIT_TOOLS[*]}"
     exit 0
   fi
 
